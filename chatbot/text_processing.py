@@ -7,7 +7,7 @@ import re
 """
 
 These flags are utilized to replace the input textual data with these flags that the encoder and decoder need to create an embedding representation
-of the sequence. 
+of the sequence.
 
 Refer here: https://datascience.stackexchange.com/questions/26947/why-do-we-need-to-add-start-s-end-s-symbols-when-using-recurrent-neural-n
 
@@ -30,68 +30,63 @@ class Vocab:  # Preprocess data to be used in a seq2seq model
         self.index2word = {PAD_FLAG: "PAD", SOS_FLAG: "SOS", EOS_FLAG: "SOS"}
         self.num_words = 3
 
-        # Iterate through given sentence and split on spaces to obtain a word.
-        def addSentence(self, sentence):
-            for word in sentence.split(' '):
-                self.addWord(word)  # Call addWord function
+    # Iterate through given sentence and split on spaces to obtain a word.
+    def addSentence(self, sentence):
+        for word in sentence.split(' '):
+            self.addWord(word)  # Call addWord function
 
-        # Add words to the vocab object
-        def addWord(self, word):
-            if word not in self.word2index:  # If the word isn't in the vocab object yet
-                self.word2index[word] = self.num_words
-                self.word2count[word] = 1
-                self.index2word[self.num_words] = word
-                self.num_words += 1
-            else:  # Otherwise it's already in the vocab object
-                self.word2count[word] += 1
+    # Add words to the vocab object
+    def addWord(self, word):
+        if word not in self.word2index:  # If the word isn't in the vocab object yet
+            self.word2index[word] = self.num_words
+            self.word2count[word] = 1
+            self.index2word[self.num_words] = word
+            self.num_words += 1
+        else:  # Otherwise it's already in the vocab object
+            self.word2count[word] += 1
 
-        # Exclude words from our Vocab depending on how often they show up in our dataset
-        def trim(self, min_count):
-            # If the word has already been trimmed (flag is true)
-            if self.trimmed:
-                return
-            self.trimmed = True  # Set to true since it's trimmed.
+     # Exclude words from our Vocab depending on how often they show up in our dataset
+    def trim(self, min_count):
+        # If the word has already been trimmed (flag is true)
+        if self.trimmed:
+            return
+        self.trimmed = True  # Set to true since it's trimmed.
 
-            selected_words = []
+        selected_words = []
 
-            # Iterate through word2count array and find words that appear below a certain threshhold (min_count) provided when the function is called
-            for x, y in self.word2count.items():  # Tuple unpacking. Refer here: https://stackoverflow.com/questions/59117667/for-x-y-in-function-explain-the-python-for-loop-structure
-                if y >= min_count:  # Word appears more than threshold
-                    # Meaning the word can be added to the vocabulary.
-                    selected_words.append(x)
+        # Iterate through word2count array and find words that appear below a certain threshhold (min_count) provided when the function is called
+        for x, y in self.word2count.items():  # Tuple unpacking. Refer here: https://stackoverflow.com/questions/59117667/for-x-y-in-function-explain-the-python-for-loop-structure
+            if y >= min_count:  # Word appears more than threshold
+                # Meaning the word can be added to the vocabulary.
+                selected_words.append(x)
 
-            print('selected_words {} / {} = {:4f}'.format(
-                len(selected_words), len(self.word2index), len(
-                    selected_words) / len(self.word2index)
-            ))
+        print('selected_words {} / {} = {:4f}'.format(
+            len(selected_words), len(self.word2index), len(
+                selected_words) / len(self.word2index)
+        ))
 
-            self.word2index = {}
-            self.word2count = {}
-            self.index2word = {PAD_FLAG: "PAD",
-                               SOS_FLAG: "SOS", EOS_FLAG: "SOS"}
-            self.num_words = 3
+        self.word2index = {}
+        self.word2count = {}
+        self.index2word = {PAD_FLAG: "PAD",
+                           SOS_FLAG: "SOS", EOS_FLAG: "SOS"}
+        self.num_words = 3
 
-            for word in selected_words:  # From list of accepted words, call the addWord method to add word to vocabulary
-                self.addWord(word)
+        for word in selected_words:  # From list of accepted words, call the addWord method to add word to vocabulary
+            self.addWord(word)
 
 
-datafile = os.path.join(".", "full_data.txt")  # Path where data
+datafile = os.path.join(
+    ".", "chatbot/formatted_movie_lines.txt")  # Path where data
 MAX_LEN = 12  # Max sentence length to parse out
 
 # Open JSON file of contractions in read mode.
-with open('contractions.json', 'r') as fp:
+with open('chatbot\contractions.json', 'r') as fp:
     fixed_prefix = json.load(fp)  # Get JSON file and return it as an object
-    """
-    The JSON object consists of contractions with the key being the contraction and the value being the simplified word, 
-    (EX: "ain't" is the key and "am not" is the value). Since all of they keys are lowercase we have to strip all words 
-    """
+
     fixed_prefix = {key.strip().lower(): value.strip().lower()
-                    for key, value in fixed_prefix}
+                    for key, value in fixed_prefix.items()}
 
 
-# To make things a hell of a lot easier we don't want our training set to have any strings composed of unicode characters, we want plain ASCII, no accents, or other characters.
-# Refer here: https://docs.python.org/3/library/unicodedata.html
-# Refer here: https://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-normalize-in-a-python-unicode-string/518232#518232
 def unicode2Ascii(string):
     return ''.join(
         # Normalize the given Unicode string with Normal Form D which is known as canonical decomposition which translates each character into it's decomposed form"
@@ -125,7 +120,7 @@ def returnVocab(datafile, dataset):
         read().strip().split("\n")
 
     # Not really sure wtf this line is doing. I know it's normalizing the strings in each line and splitting on <CoSe> but I'm not sure where that comes fromm, maybe denoting the end of a line?
-    pairs = [[normalizeString(s) for s in l.split('<CoSe>')] for l in lines]
+    pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]
 
     vocabulary = Vocab(dataset)  # Create a Vocab object
 
@@ -133,11 +128,11 @@ def returnVocab(datafile, dataset):
 
 
 # Function to check if sentences in a pair adhere to the MAX_LEN chracter limit. This is done to preserve memory usage and speedup training.
-def filterPair(pair):
+def filterPair(p):
     # Input sequences need to preserve the last word for EOS token
-    if len(pair) == 2:
+    if len(p) == 2:
         # Check if each pair (question & response) adhere to the rule
-        return len(pair[0].split(' ')) < MAX_LEN and len(pair[1].split('  ')) < MAX_LEN
+        return len(p[0].split(' ')) < MAX_LEN and len(p[1].split('  ')) < MAX_LEN
 
 
 # Function to filter pairs using filterPair
@@ -160,8 +155,12 @@ def loadPrepareData(dataset, datafile, directory):
     print("Counted words:", vocabulary.num_words)
     return vocabulary, pairs
 
+# TODO: IMPLEMENT FUNCTION TO REMOVE NAMES FROM DATASETS AS THEY'RE NOT USEFUL
+
 
 save_dir = os.path.join(".", "model", "save")
+print(save_dir)
+print(datafile)
 corpus_name = 'chatbot'
 voc, pairs = loadPrepareData(corpus_name, datafile, save_dir)
 # Print some pairs to validate
