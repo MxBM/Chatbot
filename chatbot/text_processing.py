@@ -190,7 +190,25 @@ def removeRareWords(voc, pairs, MIN_COUNT):
 
 
 # TODO: IMPLEMENT FUNCTION TO REMOVE NAMES FROM DATASETS AS THEY'RE NOT USEFUL
+
 save_dir = os.path.join(".", "model", "save")
 corpus_name = 'chatbot'
 voc, pairs = loadPrepareData(corpus_name, datafile, save_dir)
 pairs = removeRareWords(voc, pairs, MIN_COUNT)
+
+
+# Pickle allows for the serilization of a python object structure so that it can be saved on disk and later read a byte stream/data stream.
+# This is required to save the vocab object which is used later on in the encoder and decoder model.
+# Refer here for Pickle Information: https://www.journaldev.com/15638/python-pickle-example#:~:text=Python%20Pickle%20dump&text=dump()%20function%20to%20store,that%20you%20want%20to%20store.
+
+# Open the path ./pickles/vocab.file in binary mode as f
+with open(os.path.join(".", "chatbot\pickles", "vocab.file"), "wb") as f:
+    pickle.dump(voc, f, pickle.HIGHEST_PROTOCOL)
+    # First argument is the object to be stored
+    # Second argument is the file object you get by opening the desired file in wb mode (write-binary mode)
+    # Third argument is simply the protocal utilized for specific python versions loading data. Refer here: https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice
+
+# Read Binary Mode to load dumped pickle file above.
+with open(os.path.join(".", "chatbot\pickles", "vocab.file"), "rb") as f:
+    dump = pickle.load(f)
+print(dir(dump))
