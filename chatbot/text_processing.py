@@ -1,6 +1,6 @@
-from asyncore import read
 import os
 import json
+import pickle
 import unicodedata
 import re
 
@@ -149,21 +149,48 @@ def loadPrepareData(dataset, datafile, directory):
     pairs = filterPairs(pairs)
     print("Trimmed to {!s} sentence pairs".format(len(pairs)))
     print("Counting words...")
-    for pair in pairs:
-        vocabulary.addSentence(pair[0])
-        vocabulary.addSentence(pair[1])
-    print("Counted words:", vocabulary.num_words)
+    for pair in pairs:  # Iterate through pairs
+        vocabulary.addSentence(pair[0])  # Zero index is input sentence
+        vocabulary.addSentence(pair[1])  # First index is the output sentence
+    print("Counted words:", vocabulary.num_words)  # Total number of words
     return vocabulary, pairs
 
+
+MIN_COUNT = 3  # Minimum word count for trimming.
+
+
+def removeRareWords(voc, pairs, MIN_COUNT):
+    # Trim words used under the MIN_COUNT form the vocab object voc
+    voc.trim(MIN_COUNT)  # Refer to Vocab Trim function
+    keep_pairs = []  # Pairs to keep
+    for pair in pairs:
+        input_sentence = pair[0]
+        output_sentence = pair[1]
+        keep_input = True
+        keep_output = True
+        # Iterate through input sentences
+        for word in input_sentence.split(' '):
+            if word not in voc.word2index:
+                keep_input = False
+                break
+        # Iterate through output sentences
+        for word in output_sentence.split(' '):
+            if word not in voc.word2index:
+                keep_output = False
+                break
+
+        # Only append pairs to new pair list if they both don't contain any trimmed words in thier input sent. or output sent.
+        if keep_input and keep_output:
+            keep_pairs.append(pair)
+
+    print("Trimmed from {} pairs to {}, {:.4f} of total".format(
+        len(pairs), len(keep_pairs), len(keep_pairs) / len(pairs)))
+
+    return keep_pairs
+
+
 # TODO: IMPLEMENT FUNCTION TO REMOVE NAMES FROM DATASETS AS THEY'RE NOT USEFUL
-
-
 save_dir = os.path.join(".", "model", "save")
-print(save_dir)
-print(datafile)
 corpus_name = 'chatbot'
 voc, pairs = loadPrepareData(corpus_name, datafile, save_dir)
-# Print some pairs to validate
-print("\npairs:")
-for pair in pairs[:10]:
-    print(pair)
+pairs = removeRareWords(voc, pairs, MIN_COUNT)
