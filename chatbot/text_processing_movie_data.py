@@ -3,36 +3,37 @@ import codecs
 import re
 import csv
 
-# Splits each line of the file into a dictionary of fields
+"""
+This file is dedicate to preprocessing the raw data (cornel movie-dialogs corpus) into a text file full of sequential conversations.
+"""
+
+datasetName = "cornell movie-dialogs dataset"
+
+# Where the dataset is placed
+dataset = os.path.join("chatbot\data", datasetName)
 
 
-corpus_name = "cornell movie-dialogs corpus"
-
-corpus = os.path.join("chatbot\data", corpus_name)
-
-
-def loadLines(fileName, fields):
+def loadLines(fileName, params):
     lines = {}
     with open(fileName, 'r', encoding='iso-8859-1') as f:
         for line in f:
             values = line.split(" +++$+++ ")
-            # Extract fields
             lineObj = {}
-            for i, field in enumerate(fields):
+            for i, field in enumerate(params):
                 lineObj[field] = values[i]
             lines[lineObj['lineID']] = lineObj
     return lines
 
 
-# Groups fields of lines from `loadLines` into conversations based on *movie_conversations.txt*
-def loadConversations(fileName, lines, fields):
+# Groups params of lines from `loadLines` into conversations based on *movie_conversations.txt*
+def loadConversations(fileName, lines, params):
     conversations = []
     with open(fileName, 'r', encoding='iso-8859-1') as f:
         for line in f:
             values = line.split(" +++$+++ ")
-            # Extract fields
+            # Extract params
             convObj = {}
-            for i, field in enumerate(fields):
+            for i, field in enumerate(params):
                 convObj[field] = values[i]
             # Convert string to list (convObj["utteranceIDs"] == "['L598485', 'L598486', ...]")
             utterance_id_pattern = re.compile('L[0-9]+')
@@ -60,30 +61,25 @@ def extractSentencePairs(conversations):
     return qa_pairs
 
 
-# Define path to new file
-datafile = os.path.join(corpus, "formatted_movie_lines.txt")
+# Save the new datasetName as a .txt file to this directory
+datafile = os.path.join(dataset, "formatted_movie_lines.txt")
 
-delimiter = '\t'
-# Unescape the delimiter
+delimiter = '\t'  # We require a delimiter and a way to escape from it
 delimiter = str(codecs.decode(delimiter, "unicode_escape"))
 
-# Initialize lines dict, conversations list, and field ids
-lines = {}
-conversations = []
-MOVIE_LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
-MOVIE_CONVERSATIONS_FIELDS = ["character1ID",
+lines = {}  # Dictionary correlation between line id's with actual text
+conversations = []  # Contains conversations
+MOVIE_LINES_params = ["lineID", "characterID",
+                      "movieID", "character", "text"]  # params in raw data.
+MOVIE_CONVERSATIONS_params = ["character1ID",
                               "character2ID", "movieID", "utteranceIDs"]
 
-# Load lines and process conversations
-print("\nProcessing corpus...")
-lines = loadLines(os.path.join(corpus, "movie_lines.txt"), MOVIE_LINES_FIELDS)
-print("\nLoading conversations...")
-conversations = loadConversations(os.path.join(corpus, "movie_conversations.txt"),
-                                  lines, MOVIE_CONVERSATIONS_FIELDS)
+lines = loadLines(os.path.join(dataset, "movie_lines.txt"), MOVIE_LINES_params)
+conversations = loadConversations(os.path.join(dataset, "movie_conversations.txt"),
+                                  lines, MOVIE_CONVERSATIONS_params)
 
-# Write new csv file
-print("\nWriting newly formatted file...")
-with open(datafile, 'w', encoding='utf-8') as outputfile:
+print("\nNEW FILE CREATED")
+with open(datafile, 'w', encoding='utf-8') as outputfile:  # Write to the file using CSV module
     writer = csv.writer(outputfile, delimiter=delimiter, lineterminator='\n')
     for pair in extractSentencePairs(conversations):
         writer.writerow(pair)
