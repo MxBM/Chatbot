@@ -3,7 +3,7 @@ import json
 import pickle
 import unicodedata
 import re
-
+import itertools
 """
 
 These flags are utilized to replace the input textual data with these flags that the encoder and decoder need to create an embedding representation
@@ -16,12 +16,18 @@ with different numbers of rows and columns, it creates irregularites.
 Refer here: https://stackoverflow.com/questions/57393033/why-do-we-need-padding-in-seq2seq-network
 
 """
+
+# The main purpose of this file is to create a vocabulary object. A vocabulary class maintains a mapping of words to indices, thus there's
+# a correlation between the indices and words. Functions to add words to the vocabulary, using those words to form sentences and cutting back on data
+# by trimming on words already encounrted will help us create a vocbulary. Pickles is utilized to serialize this object for use in the training segment
+
 PAD_FLAG = 0  # Padding for shorter sentences
 SOS_FLAG = 1  # Start of sentence
 EOS_FLAG = 2  # End of sentence
 
 
 class Vocab:  # Preprocess data to be used in a seq2seq model
+
     def __init__(self, name):
         self.name = name
         self.trimmed = False
@@ -30,7 +36,7 @@ class Vocab:  # Preprocess data to be used in a seq2seq model
         self.index2word = {PAD_FLAG: "PAD", SOS_FLAG: "SOS", EOS_FLAG: "SOS"}
         self.num_words = 3
 
-    # Iterate through given sentence and split on spaces to obtain a word.
+    # Iterate through given sentence and split on spaces to obtain a word and add it to the vocab.
     def addSentence(self, sentence):
         for word in sentence.split(' '):
             self.addWord(word)  # Call addWord function
@@ -45,25 +51,20 @@ class Vocab:  # Preprocess data to be used in a seq2seq model
         else:  # Otherwise it's already in the vocab object
             self.word2count[word] += 1
 
-     # Exclude words from our Vocab depending on how often they show up in our dataset
+    # Exclude words from our Vocab depending on how often they show up in our dataset
     def trim(self, min_count):
         # If the word has already been trimmed (flag is true)
         if self.trimmed:
             return
         self.trimmed = True  # Set to true since it's trimmed.
 
-        selected_words = []
+        selected_words = []  # Array of words to keep
 
         # Iterate through word2count array and find words that appear below a certain threshhold (min_count) provided when the function is called
         for x, y in self.word2count.items():  # Tuple unpacking. Refer here: https://stackoverflow.com/questions/59117667/for-x-y-in-function-explain-the-python-for-loop-structure
             if y >= min_count:  # Word appears more than threshold
                 # Meaning the word can be added to the vocabulary.
                 selected_words.append(x)
-
-        print('selected_words {} / {} = {:4f}'.format(
-            len(selected_words), len(self.word2index), len(
-                selected_words) / len(self.word2index)
-        ))
 
         self.word2index = {}
         self.word2count = {}
@@ -113,17 +114,14 @@ def normalizeString(string):
 
 
 def returnVocab(datafile, dataset):
-    print('PARSING DATA..')
-
+    print('...creating vocab object')
     # The file is read into lines.
     lines = open(datafile, encoding='utf-8').\
         read().strip().split("\n")
-
-    # Not really sure wtf this line is doing. I know it's normalizing the strings in each line and splitting on <CoSe> but I'm not sure where that comes fromm, maybe denoting the end of a line?
+    # Normalize the strings in the pair
     pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]
-
-    vocabulary = Vocab(dataset)  # Create a Vocab object
-
+    # Create a Vocab object from the constructed dataset
+    vocabulary = Vocab(dataset)
     return vocabulary, pairs
 
 
@@ -143,12 +141,12 @@ def filterPairs(pairs):
 
 # Prepare the vocabulary by loading everything required
 def loadPrepareData(dataset, datafile, directory):
-    print("PREPARING TRAIN DATA...")
+    print("...preprocessing")
     vocabulary, pairs = returnVocab(datafile, dataset)
     print("Read {!s} sentence pairs".format(len(pairs)))
     pairs = filterPairs(pairs)
     print("Trimmed to {!s} sentence pairs".format(len(pairs)))
-    print("Counting words...")
+    print("...counting words")
     for pair in pairs:  # Iterate through pairs
         vocabulary.addSentence(pair[0])  # Zero index is input sentence
         vocabulary.addSentence(pair[1])  # First index is the output sentence
@@ -191,9 +189,11 @@ def removeRareWords(voc, pairs, MIN_COUNT):
 
 # TODO: IMPLEMENT FUNCTION TO REMOVE NAMES FROM DATASETS AS THEY'RE NOT USEFUL
 
+# Directory where new txt file is going to be saved
 save_dir = os.path.join(".", "model", "save")
-corpus_name = 'chatbot'
-voc, pairs = loadPrepareData(corpus_name, datafile, save_dir)
+corpus_name = 'movie_model'
+voc, pairs = loadPrepareData(
+    corpus_name, datafile, save_dir)  # Obtain preped data
 pairs = removeRareWords(voc, pairs, MIN_COUNT)
 
 
@@ -207,8 +207,10 @@ with open(os.path.join(".", "chatbot\pickles", "vocab.file"), "wb") as f:
     # First argument is the object to be stored
     # Second argument is the file object you get by opening the desired file in wb mode (write-binary mode)
     # Third argument is simply the protocal utilized for specific python versions loading data. Refer here: https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice
+print('...serializing vocab object')
 
 # Read Binary Mode to load dumped pickle file above.
 with open(os.path.join(".", "chatbot\pickles", "vocab.file"), "rb") as f:
     dump = pickle.load(f)
+print('...loading serialized object')
 print(dir(dump))
