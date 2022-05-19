@@ -1,0 +1,39 @@
+{
+  
+  "name": "chatbot",
+  
+  "scripts": {
+  
+    
+  "start": "node server/server.js"
+  
+  },
+  
+  "dependencies": {
+  
+    
+  "deparam": "^1.0.5",
+  
+    
+  "express": "^4.18.1",
+  
+    
+  "io": "^1.0.4",
+  
+    
+  "jquery": "^3.6.0",
+  
+    
+  "moment": "^2.29.3",
+  
+    
+  "mustache": "^4.2.0",
+  
+    
+  "request": "^2.88.2",
+  
+    
+  "socket.io": "^4.5.0"
+  
+  }
+}

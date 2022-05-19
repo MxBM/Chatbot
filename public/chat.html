@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" >
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" >
+		<link rel="stylesheet" type="text/css" href="styles/styles.css">
+	</head>
+	<body>
+		<div class="container-fluid h-100">
+			<div class="row justify-content-center h-100">
+				<div class="col-md-8 col-xl-6 chat">
+					<div class="card">
+						<div class="card-header msg_head">
+              <div class="card-body msg_card_body">
+                <div class="d-flex bd-highlight">
+                  <div class="user_info">
+                    <span>ROBOT</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chat_main">
+                <ol id="messages" class="chat__messages"></ol>
+                <div class="card-footer">
+                  <form id="message-form">
+                    <input class="form-control type_msg" name="message" type="text" placeholder="Message" autofocus autocomplete="off"/>
+                  </form>
+                </div>
+              </div>
+          </div>
+            <script id="message-template" type="text/template">
+              <li class="message">
+                <div class="message__title">
+                  <h4>{{from}}</h4>
+                  <span class="msg-time">{{createdAt}}</span>
+                </div>
+                <div class="message__body">
+                  <p>{{text}}</p>
+                </div>
+              </li>
+            </script>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+  <script src="./js/libs/jquery.js"></script>
+  <script src="./js/libs/moment.js"></script>
+  <script src="./js/libs/mustache.js"></script>
+  <script src="./js/libs/deparam.js"></script>
+  <script src="./js/libs/socket.io.js"></script>
+  <script src="./js/chat.js"></script> 
+	</body>
+</html>
