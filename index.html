@@ -1,20 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" type="text/css" href="interface.css"/> 
-    <script src="script.js"></script>
-</head>
-<body>
-    <div id='bodybox'>
-        <div id='chatborder'>
-          <p id="chatlog7" class="chatlog">&nbsp;</p>
-          <p id="chatlog6" class="chatlog">&nbsp;</p>
-          <p id="chatlog5" class="chatlog">&nbsp;</p>
-          <p id="chatlog4" class="chatlog">&nbsp;</p>
-          <p id="chatlog3" class="chatlog">&nbsp;</p>
-          <p id="chatlog2" class="chatlog">&nbsp;</p>
-          <p id="chatlog1" class="chatlog">&nbsp;</p>
-          <input type="text" name="chat" id="chatbox" placeholder="Hi there! Type here to talk to me." onfocus="placeHolder()">
-        </div>
-</body>
+<html>
+	<head>
+		<title>Chat</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" >
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" >
+		<link rel="stylesheet" type="text/css" href="interface.css">
+	</head>
+	<body>
+		<div class="container-fluid h-100">
+			<div class="row justify-content-center h-100">
+				<div class="col-md-8 col-xl-6 chat">
+					<div class="card">
+						<div class="card-header msg_head">
+							<div class="d-flex bd-highlight">
+								<div class="user_info">
+									<span>ROBOT</span>
+								</div>
+							</div>
+						</div>
+            <div class="chat_main">
+              <ol id="messages" class="chat__messages"></ol>
+						  <div class="chat__footer">
+                <form id="message-form">
+                  <input name="message" type="text" placeholder="Message" autofocus autocomplete="off"/>
+                  <button>Send</button>
+                </form>
+              </div>
+            </div>
+            <script id="message-template" type="text/template">
+              <li class="message">
+                <div class="message__title">
+                  <h4>{{from}}</h4>
+                  <span>{{createdAt}}</span>
+                </div>
+                <div class="message__body">
+                  <p>{{text}}</p>
+                </div>
+              </li>
+            </script>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	</body>
 </html>
+
+	
